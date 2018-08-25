@@ -240,17 +240,3 @@ def train_step(sess, batch, X, Y, train_op, loss_op, summaries_op):
     train_result, loss, summary = \
         sess.run([train_op, loss_op, summaries_op], feed_dict={X: batch[0], Y: batch[1]})
     return train_result, loss, summary
-
-""" 
-
-i, out = my_perceptron([1.0,2.0,3.0,4.0])
-sess = tf.Session()
-init = tf.global_variables_initializer()
-sess.run(init)
-output = sess.run(out)
-print(output) 
-
-"""
-
-
-# tests here
