@@ -81,7 +81,7 @@ def my_perceptron(x):
 
     i = tf.placeholder(tf.float32, shape=(x))
     w = tf.Variable(tf.ones([x], tf.float32))
-    out = my_relu(tf.reduce_sum(tf.multiply(x, w)))
+    out = my_relu(tf.reduce_sum(tf.multiply(i, w)))
     return i, out
 
 
