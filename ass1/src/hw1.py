@@ -15,7 +15,7 @@ you create in part II.
 import tensorflow as tf
 
 """ PART I """
-
+INPUT_SIZE = 784
 
 def add_consts():
     """
@@ -79,8 +79,8 @@ def my_perceptron(x):
 
     """
 
-    i = tf.placeholder(tf.float32, shape=(4))
-    w = tf.Variable(tf.ones([4], tf.float32))
+    i = tf.placeholder(tf.float32, shape=(x))
+    w = tf.Variable(tf.ones([x], tf.float32))
     out = my_relu(tf.reduce_sum(tf.multiply(x, w)))
     return i, out
 
@@ -118,9 +118,14 @@ def onelayer(X, Y, layersize=10):
         batch_xentropy: The cross-entropy loss for each image in the batch
         batch_loss: The average cross-entropy loss of the batch
     """
+    w = tf.Variable(tf.random_normal([INPUT_SIZE, layersize], stddev=0.01), tf.float32)
+    b = tf.Variable(tf.random_normal([1, layersize], stddev=0.01), tf.float32)
+    logits = tf.add(tf.matmul(X, w), b)
+    preds = tf.nn.softmax(logits)
+    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=Y)
+    batch_loss = tf.reduce_mean(batch_xentropy)
 
     return w, b, logits, preds, batch_xentropy, batch_loss
-
 
 def twolayer(X, Y, hiddensize=30, outputsize=10):
     """
@@ -139,6 +144,16 @@ def twolayer(X, Y, hiddensize=30, outputsize=10):
         batch_xentropy: The cross-entropy loss for each image in the batch
         batch_loss: The average cross-entropy loss of the batch
     """
+    w1 = tf.Variable(tf.random_normal([INPUT_SIZE, hiddensize], stddev=0.01), tf.float32)
+    b1 = tf.Variable(tf.random_normal([1, hiddensize], stddev=0.01), tf.float32)
+    w2 = tf.Variable(tf.random_normal([hiddensize, outputsize], stddev=0.01), tf.float32)
+    b2 = tf.Variable(tf.random_normal([1, outputsize], stddev=0.01), tf.float32)
+    z1 = tf.add(tf.matmul(X, w1), b1)
+    a1 = tf.nn.relu(z1)
+    logits = tf.add(tf.matmul(a1, w2), b2)
+    preds = tf.nn.softmax(logits)
+    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=Y)
+    batch_loss = tf.reduce_mean(batch_xentropy)
 
     return w1, b1, w2, b2, logits, preds, batch_xentropy, batch_loss
 
@@ -169,6 +184,35 @@ def convnet(X, Y, convlayer_sizes=[10, 10], \
     will be from the conv2 layer. If you reshape the conv2 output using tf.reshape,
     you should be able to call onelayer() to get the final layer of your network
     """
+
+    # batch_size -1 indicates that dynamically computed based on the number of input
+    batch_size = -1
+    # 1 black chanel (could use 3 for color image(RGB))
+    channels = 1
+    _input = tf.reshape(X, [batch_size, 28, 28, channels])
+    conv1 = tf.layers.conv2d(
+        inputs=_input, 
+        filters=convlayer_sizes[0], 
+        kernel_size=filter_shape, 
+        padding='same', 
+        activation=tf.nn.relu)
+
+    conv2 = tf.layers.conv2d(
+        inputs=conv1, 
+        filters=convlayer_sizes[1], 
+        kernel_size=filter_shape, 
+        padding='same', 
+        activation=tf.nn.relu)
+
+    size = convlayer_sizes[1] * 784
+    one_layer_input = tf.reshape(conv2, [-1, size])
+
+    w = tf.Variable(tf.random_normal([size, outputsize], stddev=0.01), tf.float32)
+    b = tf.Variable(tf.random_normal([1, outputsize], stddev=0.01), tf.float32)
+    logits = tf.add(tf.matmul(one_layer_input, w), b)
+    preds = tf.nn.softmax(logits)
+    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=Y)
+    batch_loss = tf.reduce_mean(batch_xentropy)
 
     return conv1, conv2, w, b, logits, preds, batch_xentropy, batch_loss
 
@@ -204,7 +248,9 @@ sess = tf.Session()
 init = tf.global_variables_initializer()
 sess.run(init)
 output = sess.run(out)
-print(output) """
+print(output) 
+
+"""
 
 
 # tests here
