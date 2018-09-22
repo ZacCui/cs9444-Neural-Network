@@ -65,8 +65,8 @@ def preprocess(review):
             break
         if word not in stop_words and len(word) > 1:
             processed_review.append(word)
+            length += 1
 
-        length += 1
 
     return processed_review
 
