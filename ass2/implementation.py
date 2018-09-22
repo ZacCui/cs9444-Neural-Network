@@ -23,7 +23,8 @@ stop_words = set({'ourselves', 'hers', 'between', 'yourself', 'again',
                   'herself', 'has', 'just', 'where', 'too', 'only', 'myself',
                   'which', 'those', 'i', 'after', 'few', 'whom', 't', 'being',
                   'if', 'theirs', 'my', 'against', 'a', 'by', 'doing', 'it',
-                  'how', 'further', 'was', 'here', 'than'})
+                  'how', 'further', 'was', 'here', 'than', 'nor', 'must', 
+                  'doesn', 'haven', 'wouldn', 'shouldn', 'onto'})
 
 def preprocess(review):
     """
@@ -51,7 +52,7 @@ def preprocess(review):
             tmp_review += character
     '''
     tmp_review = ""
-    tmp_review = re.sub(r"[!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~]", " ", review)
+    tmp_review = re.sub(r"[\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\]\^\_\`\{\|\}\~]", " ", review)
 
     # delete multiple space
     tmp_review = re.sub(r"\s+", " ", tmp_review)
@@ -88,28 +89,25 @@ def define_graph():
     """
     input_data = tf.placeholder(dtype=tf.float32, shape=[BATCH_SIZE, MAX_WORDS_IN_REVIEW, EMBEDDING_SIZE], name="input_data")
     labels = tf.placeholder(dtype=tf.float32, shape=[BATCH_SIZE, 2], name="labels")
-    #dropout_keep_prob = tf.placeholder_with_default(1.0, shape=(), name="dropout_keep_prob")
-    dropout_keep_prob = tf.placeholder(dtype=tf.float32, shape=(), name="dropout_keep_prob")
+    dropout_keep_prob = tf.placeholder_with_default(0.6, shape=(), name="dropout_keep_prob")
+    number_of_layers = 2
 
-    #embedded_words = tf.nn.embedding_lookup(input_data)
-
-    model = 1
+    model = 0
     batch_output = False
     if (model == 1):
-        lstm_fw_cell = lstm_cell()
-        lstm_bw_cell = lstm_cell()
-        multi_lstm = tf.contrib.rnn.MultiRNNCell([lstm_fw_cell, lstm_bw_cell])
+        multi_lstm = tf.contrib.rnn.MultiRNNCell([lstm_cell() for _ in range(number_of_layers)])
         multi_lstm = tf.contrib.rnn.DropoutWrapper(multi_lstm, output_keep_prob=dropout_keep_prob)
         (outputs, state) = tf.nn.dynamic_rnn(cell=multi_lstm, inputs=input_data, dtype=tf.float32)
     else:
         lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell(), output_keep_prob=dropout_keep_prob)
         lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell(), output_keep_prob=dropout_keep_prob)
-        (outputs, output_state_fw, output_state_bw) = tf.contrib.rnn.stack_bidirectional_dynamic_rnn(lstm_fw_cell, lstm_bw_cell, inputs=input_data, dtype=tf.float32)
+        (outputs, output_state_fw, output_state_bw) = tf.contrib.rnn.stack_bidirectional_dynamic_rnn([lstm_fw_cell], [lstm_bw_cell], inputs=input_data, dtype=tf.float32)
+        print(outputs.shape[2])
 
     if batch_output:
         outputs = tf.reduce_mean(outputs, axis=1)
     
-    w = tf.Variable(tf.random_normal([num_units, 2]), dtype=tf.float32)
+    w = tf.Variable(tf.random_normal([num_units * 2, 2]), dtype=tf.float32)
     b = tf.Variable(tf.random_normal([2]), dtype=tf.float32)
     logits = tf.add(tf.matmul(outputs[:, -1, :], w), b)
     xentropy = tf.nn.softmax_cross_entropy_with_logits(labels=labels, logits=logits)
