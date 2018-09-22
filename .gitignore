@@ -2,3 +2,8 @@ __pycache__/
 data/
 *.csv
 summaries/
+*.zip
+checkpoints/
+*.pkl
+tensorboard/
+*50d.txt

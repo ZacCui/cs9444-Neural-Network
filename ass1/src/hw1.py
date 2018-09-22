@@ -122,7 +122,7 @@ def onelayer(X, Y, layersize=10):
     b = tf.Variable(tf.random_normal([1, layersize], stddev=0.01), tf.float32)
     logits = tf.add(tf.matmul(X, w), b)
     preds = tf.nn.softmax(logits)
-    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=Y)
+    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y)
     batch_loss = tf.reduce_mean(batch_xentropy)
 
     return w, b, logits, preds, batch_xentropy, batch_loss
@@ -152,7 +152,7 @@ def twolayer(X, Y, hiddensize=30, outputsize=10):
     a1 = tf.nn.relu(z1)
     logits = tf.add(tf.matmul(a1, w2), b2)
     preds = tf.nn.softmax(logits)
-    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=Y)
+    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y)
     batch_loss = tf.reduce_mean(batch_xentropy)
 
     return w1, b1, w2, b2, logits, preds, batch_xentropy, batch_loss
@@ -211,7 +211,7 @@ def convnet(X, Y, convlayer_sizes=[10, 10], \
     b = tf.Variable(tf.random_normal([1, outputsize], stddev=0.01), tf.float32)
     logits = tf.add(tf.matmul(one_layer_input, w), b)
     preds = tf.nn.softmax(logits)
-    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=Y)
+    batch_xentropy = tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=Y)
     batch_loss = tf.reduce_mean(batch_xentropy)
 
     return conv1, conv2, w, b, logits, preds, batch_xentropy, batch_loss
