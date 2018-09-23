@@ -39,7 +39,7 @@ EMBEDDING_SIZE = imp.EMBEDDING_SIZE  # Dimensions for each word vector
 SAVE_FREQ = 100
 iterations = 100000
 
-checkpoints_dir = "file://~/cs9444/cs9444-Neural-Network/ass2/checkpoints/"
+checkpoints_dir = "file://cs9444/cs9444-Neural-Network/ass2/checkpoints/"
 
 
 def load_data(path='./data/train'):

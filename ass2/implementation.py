@@ -4,8 +4,8 @@ import re
 BATCH_SIZE = 128
 MAX_WORDS_IN_REVIEW = 180  # Maximum length of a review to consider
 EMBEDDING_SIZE = 50  # Dimensions for each word vector
-num_units = 32
-learning_rate = 0.0005
+num_units = 64
+learning_rate = 0.001
 
 
 stop_words = set({'ourselves', 'hers', 'between', 'yourself', 'again',
