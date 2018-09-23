@@ -26,6 +26,9 @@ import os
 from pathlib import Path
 import pickle as pk
 import glob
+from tensorflow.contrib import tpu
+from tensorflow.contrib.cluster_resolver import TPUClusterResolver
+
 
 import implementation as imp
 
@@ -154,8 +157,10 @@ def train():
 
     # saver
     all_saver = tf.train.Saver()
+    tpu_grpc_url = TPUClusterResolver(tpu=[os.environ['TPU_NAME']]).get_master()
+    sess = tf.InteractiveSession(tpu_grpc_url)
+    sess.run(tpu.initialize_system())
 
-    sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
 
     logdir = "tensorboard/" + datetime.datetime.now().strftime(
@@ -164,13 +169,13 @@ def train():
 
     for i in range(iterations):
         batch_data, batch_labels = getTrainBatch()
-        sess.run(optimizer, {input_data: batch_data, labels: batch_labels,
-                             dropout_keep_prob: 0.6})
+        sess.run(tpu.rewrite(optimizer, {input_data: batch_data, labels: batch_labels,
+                             dropout_keep_prob: 0.6}))
         if (i % 50 == 0):
-            loss_value, accuracy_value, summary = sess.run(
+            loss_value, accuracy_value, summary = sess.run(tpu.rewrite(
                 [loss, accuracy, summary_op],
                 {input_data: batch_data,
-                 labels: batch_labels})
+                 labels: batch_labels}))
             writer.add_summary(summary, i)
             print("Iteration: ", i)
             print("loss", loss_value)
@@ -182,7 +187,9 @@ def train():
                                        "/trained_model.ckpt",
                                        global_step=i)
             print("Saved model to %s" % save_path)
-    sess.close()
+    #sess.close()
+    sess.run(tpu.shutdown_system())
+
 
 
 def eval(data_path):

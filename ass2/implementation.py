@@ -2,10 +2,10 @@ import tensorflow as tf
 import re
 
 BATCH_SIZE = 128
-MAX_WORDS_IN_REVIEW = 100  # Maximum length of a review to consider
+MAX_WORDS_IN_REVIEW = 180  # Maximum length of a review to consider
 EMBEDDING_SIZE = 50  # Dimensions for each word vector
-num_units = 128
-learning_rate = 0.001
+num_units = 32
+learning_rate = 0.0005
 
 stop_words = set({'ourselves', 'hers', 'between', 'yourself', 'again',
                   'there', 'about', 'once', 'during', 'out', 'very', 'having',
