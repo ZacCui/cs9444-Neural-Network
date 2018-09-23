@@ -26,6 +26,9 @@ import os
 from pathlib import Path
 import pickle as pk
 import glob
+from tensorflow.contrib import tpu
+from tensorflow.contrib.cluster_resolver import TPUClusterResolver
+
 
 import implementation as imp
 
@@ -36,7 +39,7 @@ EMBEDDING_SIZE = imp.EMBEDDING_SIZE  # Dimensions for each word vector
 SAVE_FREQ = 100
 iterations = 100000
 
-checkpoints_dir = "./checkpoints"
+checkpoints_dir = "file://~/cs9444/cs9444-Neural-Network/ass2/checkpoints/"
 
 
 def load_data(path='./data/train'):
@@ -154,8 +157,10 @@ def train():
 
     # saver
     all_saver = tf.train.Saver()
+    tpu_grpc_url = TPUClusterResolver(tpu=[os.environ['TPU_NAME']]).get_master()
+    sess = tf.InteractiveSession(tpu_grpc_url)
+    sess.run(tpu.initialize_system())
 
-    sess = tf.InteractiveSession()
     sess.run(tf.global_variables_initializer())
 
     logdir = "tensorboard/" + datetime.datetime.now().strftime(
@@ -182,7 +187,9 @@ def train():
                                        "/trained_model.ckpt",
                                        global_step=i)
             print("Saved model to %s" % save_path)
-    sess.close()
+    #sess.close()
+    sess.run(tpu.shutdown_system())
+
 
 
 def eval(data_path):
