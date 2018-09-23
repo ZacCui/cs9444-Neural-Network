@@ -7,6 +7,7 @@ EMBEDDING_SIZE = 50  # Dimensions for each word vector
 num_units = 32
 learning_rate = 0.0005
 
+
 stop_words = set({'ourselves', 'hers', 'between', 'yourself', 'again',
                   'there', 'about', 'once', 'during', 'out', 'very', 'having',
                   'with', 'they', 'own', 'an', 'be', 'some', 'for', 'do', 'its',
@@ -102,7 +103,6 @@ def define_graph():
         lstm_fw_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell(), output_keep_prob=dropout_keep_prob)
         lstm_bw_cell = tf.contrib.rnn.DropoutWrapper(lstm_cell(), output_keep_prob=dropout_keep_prob)
         (outputs, output_state_fw, output_state_bw) = tf.contrib.rnn.stack_bidirectional_dynamic_rnn([lstm_fw_cell], [lstm_bw_cell], inputs=input_data, dtype=tf.float32)
-        print(outputs.shape[2])
 
     if batch_output:
         outputs = tf.reduce_mean(outputs, axis=1)
