@@ -157,7 +157,7 @@ def train():
 
     # saver
     all_saver = tf.train.Saver()
-    tpu_grpc_url = TPUClusterResolver(tpu=[os.environ['node-1']]).get_master()
+    tpu_grpc_url = TPUClusterResolver(tpu=[os.environ['TPU_NAME']]).get_master()
     sess = tf.InteractiveSession(tpu_grpc_url)
     sess.run(tpu.initialize_system())
 
@@ -169,13 +169,11 @@ def train():
 
     for i in range(iterations):
         batch_data, batch_labels = getTrainBatch()
-        sess.run(tpu.rewrite(optimizer, {input_data: batch_data, labels: batch_labels,
-                             dropout_keep_prob: 0.6}))
+        sess.run(tpu.rewrite(optimizer, [batch_data, batch_labels, 0.6]))
         if (i % 50 == 0):
             loss_value, accuracy_value, summary = sess.run(tpu.rewrite(
                 [loss, accuracy, summary_op],
-                {input_data: batch_data,
-                 labels: batch_labels}))
+                [batch_data,batch_labels]))
             writer.add_summary(summary, i)
             print("Iteration: ", i)
             print("loss", loss_value)
