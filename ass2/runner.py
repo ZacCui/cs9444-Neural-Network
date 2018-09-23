@@ -157,7 +157,7 @@ def train():
 
     # saver
     all_saver = tf.train.Saver()
-    tpu_grpc_url = TPUClusterResolver(tpu=[os.environ['node-1']]).get_master()
+    tpu_grpc_url = TPUClusterResolver(tpu=[os.environ['cuiziyi7']]).get_master()
     sess = tf.InteractiveSession(tpu_grpc_url)
     sess.run(tpu.initialize_system())
 
