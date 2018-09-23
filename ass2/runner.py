@@ -169,11 +169,13 @@ def train():
 
     for i in range(iterations):
         batch_data, batch_labels = getTrainBatch()
-        sess.run(tpu.rewrite(optimizer, [batch_data, batch_labels, 0.6]))
+        sess.run(optimizer, {input_data: batch_data, labels: batch_labels,
+                             dropout_keep_prob: 0.6})
         if (i % 50 == 0):
-            loss_value, accuracy_value, summary = sess.run(tpu.rewrite(
+            loss_value, accuracy_value, summary = sess.run(
                 [loss, accuracy, summary_op],
-                [batch_data,batch_labels]))
+                {input_data: batch_data,
+                 labels: batch_labels})
             writer.add_summary(summary, i)
             print("Iteration: ", i)
             print("loss", loss_value)
