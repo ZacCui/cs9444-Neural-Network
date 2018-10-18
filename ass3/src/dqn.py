@@ -13,13 +13,13 @@ TEST_FREQUENCY = 100  # Num episodes to run before visualizing test accuracy
 
 # TODO: HyperParameters
 GAMMA = 0.9 # discount factor
-INITIAL_EPSILON = 1 # starting value of epsilon
+INITIAL_EPSILON = 0.8 # starting value of epsilon
 FINAL_EPSILON =  0.1 # final value of epsilon
 EPSILON_DECAY_STEPS = 60 # decay period
 HIDDEN_UNITS = 64
 NUM_LAYERS = 2
-learning_rate = 0.0015
-BATCH_SIZE = 32
+learning_rate = 0.00025
+BATCH_SIZE = 128
 MEMORY_SIZE = 1000
 replay_buffer = []
 
@@ -37,23 +37,32 @@ action_in = tf.placeholder("float", [None, ACTION_DIM])
 target_in = tf.placeholder("float", [None])
 
 # TODO: Define Network Graph
+next_state_in = tf.placeholder("float", [None, STATE_DIM])
+actions_next = tf.placeholder("float", [None, ACTION_DIM])
+done_flags = tf.placeholder("float", [None])
+rewards = tf.placeholder("float", [None])
 
+w, b = tf.random_normal_initializer(0., 0.05), tf.random_normal_initializer(0., 0.05)
 curr_state = state_in
-#w_initializer, b_initializer = tf.random_normal_initializer(0., 0.3), tf.constant_initializer(0.1)
+next_state = next_state_in
 
 for i in range(NUM_LAYERS):
-    curr_state = tf.layers.dense(inputs=curr_state, units=HIDDEN_UNITS, activation=tf.nn.relu)
+    curr_state = tf.layers.dense(inputs=curr_state, units=HIDDEN_UNITS, activation=tf.nn.relu, kernel_initializer= w, bias_initializer=b)
+for i in range(NUM_LAYERS):
+    next_state = tf.layers.dense(inputs=next_state, units=HIDDEN_UNITS, activation=tf.nn.relu, kernel_initializer= w, bias_initializer=b)
 
 # TODO: Network outputs
 q_values = tf.layers.dense(inputs=curr_state, units=ACTION_DIM, activation=None)
-print(q_values, action_in)
-action = tf.reshape(action_in, [2, -1])
+q_target = tf.layers.dense(inputs=next_state, units=ACTION_DIM, activation=None)
 
-q_action = tf.reduce_sum(tf.matmul(q_values, action), axis=1)
-print(q_action)
+#action = tf.transpose(action_in)
+action_selected = tf.reduce_sum(tf.multiply(q_values, action_in), axis=1)
+max_q_next_by_target = tf.reduce_max(q_target, axis=1)
+
+y = rewards + (1. - done_flags) * GAMMA * max_q_next_by_target
 
 # TODO: Loss/Optimizer Definition
-loss = tf.losses.mean_squared_error(target_in, q_action)
+loss = tf.reduce_mean(tf.square(action_selected - tf.stop_gradient(y)))
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
 # Start session - Tensorflow housekeeping
@@ -107,29 +116,22 @@ for episode in range(EPISODE):
 
             memory = random.sample(replay_buffer, BATCH_SIZE)
 
-            #index = random.randint(0, len(replay_buffer) - BATCH_SIZE)
-            #memory = replay_buffer[index : index+BATCH_SIZE]
+            # index = random.randint(0, len(replay_buffer) - BATCH_SIZE)
+            # memory = replay_buffer[index : index+BATCH_SIZE]
+            # memory with rnn
             ns_batch = [data[0] for data in memory]
             r_batch = [data[1] for data in memory]
             a_batch = [data[5] for data in memory]
             s_batch = [data[4] for data in memory]
-            nextstate_q_values = q_values.eval(feed_dict={
-                state_in: ns_batch
-            })
-            t_batch = []
-            for i in range(0, BATCH_SIZE):
-                game_done = memory[i][2]
-                if game_done:
-                    t_batch.append(r_batch[i])
-                else:
-                    target = r_batch[i] + GAMMA * np.amax(nextstate_q_values[i])
-                    t_batch.append(target)
-
+            d_batch = [1. if data[2] else 0. for data in memory]
+        
             # Do one training step
             session.run([optimizer], feed_dict={
-                target_in: t_batch,
                 action_in: a_batch,
-                state_in: s_batch
+                state_in: s_batch,
+                next_state_in : ns_batch,
+                done_flags : d_batch,
+                rewards : r_batch 
             })
 
         # Update
