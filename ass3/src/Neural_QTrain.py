@@ -14,7 +14,7 @@ TEST_FREQUENCY = 100  # Num episodes to run before visualizing test accuracy
 # TODO: HyperParameters
 GAMMA = 0.9 # discount factor
 INITIAL_EPSILON = 1 # starting value of epsilon
-FINAL_EPSILON =  0.1 # final value of epsilon
+FINAL_EPSILON = 0.1 # final value of epsilon
 EPSILON_DECAY_STEPS = 60 # decay period
 HIDDEN_UNITS = 64
 NUM_LAYERS = 2
@@ -46,11 +46,8 @@ for i in range(NUM_LAYERS):
 
 # TODO: Network outputs
 q_values = tf.layers.dense(inputs=curr_state, units=ACTION_DIM, activation=None)
-print(q_values, action_in)
-action = tf.reshape(action_in, [2, -1])
 
-q_action = tf.reduce_sum(tf.matmul(q_values, action), axis=1)
-print(q_action)
+q_action = tf.reduce_sum(tf.multiply(q_values, action_in), axis=1)
 
 # TODO: Loss/Optimizer Definition
 loss = tf.losses.mean_squared_error(target_in, q_action)
